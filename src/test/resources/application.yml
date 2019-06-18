@@ -1,0 +1,4 @@
+# Unit tests does not need config map
+# spring.application.name=${project.artifactId}
+greeting:
+  message: "Hello, %s!"

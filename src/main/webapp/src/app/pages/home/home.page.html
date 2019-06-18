@@ -1,0 +1,64 @@
+<div class="jumbotron">
+  <h2>Fruits Catalog</h2>
+  <p>Browse and create fruits within your catalog</p>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title">Fruits in catalog</h2>
+        </div>
+        <div class="panel-body">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th></th>
+                <th>#</th>
+                <th>Name</th>
+                <th>Origin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let fruit of fruits">
+                <td><img src="./assets/{{fruit.name}}.png" width="28px" heitgh="28px"/></td>
+                <td>{{ fruit.id }}</td>
+                <td>{{ fruit.name }}</td>
+                <td>{{ fruit.origin }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Add new fruit</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="form-group">
+              <label for="name" class="col-lg-3 control-label">Name</label>
+              <div class="col-lg-6">
+                <input type="text" class="form-control" id="name" name="name" [(ngModel)]="fruit.name" placeholder="banana">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="origin" class="col-lg-3 control-label">Origin</label>
+              <div class="col-lg-6">
+                <input type="text" class="form-control" id="origin" name="origin" [(ngModel)]="fruit.origin" placeholder="france">
+              </div>
+            </div>
+          </div>
+          <div class="pull-right">
+            <br/>
+            <button type="button" class="btn btn-default" (click)="resetFruit()">Reset</button>&nbsp;
+            <button type="button" class="btn btn-success" (click)="addFruit()">Add</button>
+            <br/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

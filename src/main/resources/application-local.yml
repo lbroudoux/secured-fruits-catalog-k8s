@@ -1,0 +1,27 @@
+spring.data.mongodb.uri: mongodb://localhost:27017/sampledb
+
+# Metrics related configurations
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# OpenTracing related configurations.
+opentracing:
+  jaeger:
+    enabled: true
+    log-spans: true
+    enable-b3-propagation: false
+    udp-sender:
+      host: "localhost"
+      port: 5775
