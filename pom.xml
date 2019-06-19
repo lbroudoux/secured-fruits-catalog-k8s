@@ -90,6 +90,12 @@
       <artifactId>spring-boot-starter-data-mongodb</artifactId>
     </dependency>
 
+    <!-- Adding keycloak adapter -->
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-spring-boot-starter</artifactId>
+    </dependency>
+
     <!-- Spring boot actuator exposes metrics endpoint and embeds micrometer-core -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

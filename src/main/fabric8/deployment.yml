@@ -43,5 +43,7 @@ spec:
                 secretKeyRef:
                   key: database-password
                   name: mongodb
+            - name: KEYCLOAK_URL
+              value: https://keycloak-fruits-catalog.apps.144.76.24.92.nip.io/auth
 
           
