@@ -23,5 +23,5 @@
 hs_err_pid*
 
 /target
-/dist
-/node_modules
+*dist
+*node_modules
