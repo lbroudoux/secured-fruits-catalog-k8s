@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-sa
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: vault-config
+  labels:
+    app: vault
+data:
+  vault-config: |-
+    {
+      "backend": {
+        "file": {
+          "path": "/vault/file"
+        }
+      }, 
+      "default_lease_ttl": "168h", 
+      "max_lease_ttl": "720h" , 
+      "disable_mlock": true,
+      "ui": true, 
+      "listener": { 
+        "tcp" : { 
+          "address" : "0.0.0.0:8200" , 
+          "tls_cert_file" : "/var/run/secrets/kubernetes.io/certs/tls.crt",
+          "tls_key_file" : "/var/run/secrets/kubernetes.io/certs/tls.key"
+        }
+      } 
+    }
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: vault-file-backend
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: vault
+  name: vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      serviceAccountName: vault-sa
+      containers:
+      - image: vault:1.0.2
+        name: vault
+        ports:
+        - containerPort: 8200
+          name: vaultport
+          protocol: TCP
+        args:
+        - server
+        - -log-level=debug    
+        env:
+        - name: SKIP_SETCAP
+          value: 'true' 
+        - name: VAULT_LOCAL_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: vault-config
+              key: vault-config
+        volumeMounts:      
+        - name: vault-file-backend
+          mountPath: /vault/file
+          readOnly: false
+        - name: vault-cert
+          mountPath: /var/run/secrets/kubernetes.io/certs
+        livenessProbe:
+          httpGet:
+            path: 'v1/sys/health?standbyok=true&standbycode=200&sealedcode=200&uninitcode=200'
+            port: 8200
+            scheme: HTTPS
+        readinessProbe:
+          httpGet:
+            path: 'v1/sys/health?standbyok=true&standbycode=200&sealedcode=200&uninitcode=200'
+            port: 8200
+            scheme: HTTPS                                        
+      volumes:
+      - name: vault-file-backend
+        persistentVolumeClaim:
+          claimName: vault-file-backend
+      - name: vault-cert
+        secret:
+          secretName: vault-cert          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: vault-cert
+  labels:
+    app: vault
+spec:
+  ports:
+  - name: vault
+    port: 8200
+  selector:
+    app: vault
