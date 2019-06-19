@@ -1,5 +1,22 @@
 spring.data.mongodb.uri: mongodb://localhost:27017/sampledb
 
+# Keycloak configuration properties
+keycloak:
+  realm: fruits-catalog
+  resource: fruits-catalog-app
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8180/auth}
+  bearer-only: true
+  ssl-required: external
+  securityConstraints:
+    - securityCollections:
+      name: Insecure stuffs
+      authRoles:
+        - user
+        - manager
+        - admin
+      patterns:
+        - /api/fruits
+
 # Metrics related configurations
 management:
   endpoints:

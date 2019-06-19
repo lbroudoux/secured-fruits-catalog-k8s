@@ -1,0 +1,338 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: keycloak-admin
+  labels:
+    app: keycloak
+type: kubernetes.io/basic-auth
+stringData:
+  username: adminKC
+  password: passwordKC
+  postgresUsername: adminPG
+  postgresPassword: passwordPG
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: keycloak-config
+  labels:
+    app: keycloak
+    container: keycloak
+data:
+  fruits-catalog-realm.json: |-
+    {
+      "id": "fruits-catalog",
+      "realm": "fruits-catalog",
+      "displayName": "Fruits-Catalog",
+      "notBefore": 0,
+      "revokeRefreshToken": false,
+      "refreshTokenMaxReuse": 0,
+      "accessTokenLifespan": 300,
+      "accessTokenLifespanForImplicitFlow": 900,
+      "ssoSessionIdleTimeout": 1800,
+      "ssoSessionMaxLifespan": 36000,
+      "offlineSessionIdleTimeout": 2592000,
+      "accessCodeLifespan": 60,
+      "accessCodeLifespanUserAction": 300,
+      "accessCodeLifespanLogin": 1800,
+      "actionTokenGeneratedByAdminLifespan": 43200,
+      "actionTokenGeneratedByUserLifespan": 300,
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "registrationEmailAsUsername": false,
+      "rememberMe": false,
+      "verifyEmail": false,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": false,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": false,
+      "permanentLockout": false,
+      "maxFailureWaitSeconds": 900,
+      "minimumQuickLoginWaitSeconds": 60,
+      "waitIncrementSeconds": 60,
+      "quickLoginCheckMilliSeconds": 1000,
+      "maxDeltaTimeSeconds": 43200,
+      "failureFactor": 30,
+      "roles": {
+        "realm": [
+          {
+            "name": "admin",
+            "scopeParamRequired": false,
+            "composite": false,
+            "clientRole": false,
+            "containerId": "fruits-catalog"
+          },
+          {
+            "name": "manager",
+            "scopeParamRequired": false,
+            "composite": false,
+            "clientRole": false,
+            "containerId": "fruits-catalog"
+          },
+          {
+            "name": "user",
+            "scopeParamRequired": false,
+            "composite": false,
+            "clientRole": false,
+            "containerId": "fruits-catalog"
+          }
+        ]
+      },
+      "defaultRoles": [ "user" ],
+      "requiredCredentials": [ "password" ],
+      "scopeMappings": [
+        {
+          "client": "fruits-catalog-app-js",
+          "roles": ["admin", "manager", "user"]
+        }
+      ],
+      "applications": [
+        {
+          "name": "fruits-catalog-app",
+          "enabled": true,
+          "bearerOnly": true
+        },
+        {
+          "name": "fruits-catalog-app-js",
+          "enabled": true,
+          "publicClient": true,
+          "webOrigins": [
+            "+"
+          ],
+          "redirectUris": [
+            "https://fruits-catalog/*"
+          ]
+        },
+        {
+          "name": "fruits-catalog-serviceaccount",
+          "enabled": true,
+          "bearerOnly": false,
+          "publicClient": false,
+          "standardFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "clientAuthenticatorType": "client-secret"
+        }
+      ],
+      "identityProviders": [
+      ],
+      "keycloakVersion": "6.0.1"
+    }
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector: 
+    matchLabels:  
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak-server
+        image: jboss/keycloak:6.0.1
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: jolokia
+          containerPort: 8778
+          protocol: TCP
+        livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /auth/realms/master
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 3
+        readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /auth/realms/master
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+        env:
+        - name: INTERNAL_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: KEYCLOAK_IMPORT
+          value: /opt/jboss/keycloak/standalone/configuration/realm/fruits-catalog-realm.json
+        - name: KEYCLOAK_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: keycloak-admin
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: keycloak-admin
+        - name: OPERATING_MODE
+          value: clustered
+        - name: DB_VENDOR
+          value: POSTGRES
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              key: postgresUsername
+              name: keycloak-admin
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgresPassword
+              name: keycloak-admin
+        - name: DB_DATABASE
+          value: root
+        - name: DB_ADDR
+          value: keycloak-postgresql
+        - name: OPENSHIFT_KUBE_PING_LABELS
+          value: deploymentconfig=keycloak
+        - name: OPENSHIFT_KUBE_PING_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        volumeMounts:
+        - name: keycloak-config
+          mountPath: "/opt/jboss/keycloak/standalone/configuration/realm"
+        securityContext:
+          privileged: false
+      volumes:
+      - name: keycloak-config
+        configMap:
+          name: keycloak-config
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  ports:
+    - name: keycloak
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+  sessionAffinity: None
+  selector:
+    app: keycloak
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: keycloak-postgresql
+  labels:
+    app: keycloak
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: keycloak-postgresql
+  labels:
+    app: keycloak
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector: 
+    matchLabels:  
+      app: keycloak-postgresql
+      deploymentconfig: keycloak-postgresql
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgresql
+        deploymentconfig: keycloak-postgresql
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: keycloak-postgresql
+        image: centos/postgresql-95-centos7:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - psql 127.0.0.1 -U ${POSTGRESQL_USER} -q -d ${POSTGRESQL_DATABASE}
+              -c 'SELECT 1'
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 5432
+        env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: postgresUsername
+              name: keycloak-admin
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgresPassword
+              name: keycloak-admin
+        - name: POSTGRESQL_DATABASE
+          value: root
+        - name: POSTGRESQL_MAX_CONNECTIONS
+          value: '100'
+        - name: POSTGRESQL_SHARED_BUFFERS
+          value: 12MB
+        volumeMounts:
+          - name: keycloak-postgresql-data
+            mountPath: "/var/lib/pgsql/data"
+      volumes:
+      - name: keycloak-postgresql-data
+        persistentVolumeClaim:
+          claimName: keycloak-postgresql
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: keycloak-postgresql
+  labels:
+    app: keycloak
+spec:
+  ports:
+    - name: keycloak-postgresql
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+  sessionAffinity: None
+  selector:
+    app: keycloak-postgresql
+    deploymentconfig: keycloak-postgresql

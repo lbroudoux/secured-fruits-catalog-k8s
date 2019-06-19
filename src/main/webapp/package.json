@@ -29,7 +29,8 @@
     "ngx-bootstrap": "^3.0.1",
     "ngx-highlightjs": "^2.1.4",
     "rxjs": "^6.0.0",
-    "zone.js": "^0.8.26"
+    "zone.js": "^0.8.26",
+    "keycloak-js": "6.0.1"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^6.0.3",
