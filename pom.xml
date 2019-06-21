@@ -205,6 +205,83 @@
   </build>
   <profiles>
     <profile>
+      <id>prod</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>install node and npm</id>
+                <goals>
+                  <goal>install-node-and-npm</goal>
+                </goals>
+                <phase>generate-resources</phase>
+              </execution>
+              <execution>
+                <id>npm install</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <configuration>
+                  <arguments>install</arguments>
+                </configuration>
+              </execution>
+              <!-- Build the app -->
+              <execution>
+                <id>ng build</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <arguments>run-script build-prod</arguments>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <nodeVersion>v8.11.3</nodeVersion>
+              <npmVersion>5.6.0</npmVersion>
+              <workingDirectory>${basedir}/src/main/webapp</workingDirectory>
+              <installDirectory>target</installDirectory>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>copy-resources</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>target/classes/public</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>src/main/webapp/dist</directory>
+                      <filtering>false</filtering>
+                    </resource>
+                    <resource>
+                      <directory>${basedir}</directory>
+                      <filtering>false</filtering>
+                      <includes>
+                        <include>bower_components/bootstrap/**</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <activation />
+    </profile>
+    <profile>
       <id>openshift</id>
       <build>
         <plugins>
