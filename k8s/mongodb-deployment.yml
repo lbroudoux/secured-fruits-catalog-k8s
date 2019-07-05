@@ -8,7 +8,7 @@ metadata:
 type: Opaque
 stringData:
   database-name: sampledb
-  database-username: userEVY
+  database-user: userEVY
   database-password: wwsPHR4gDorXgQ2a
   database-admin-password: YiwThWIcUsaIwymi
 ---
@@ -93,7 +93,7 @@ spec:
         - name: MONGODB_USER
           valueFrom:
             secretKeyRef:
-              key: database-username
+              key: database-user
               name: mongodb
         - name: MONGODB_PASSWORD
           valueFrom:
