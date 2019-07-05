@@ -1,0 +1,129 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: mongodb
+  labels:
+    app: fruits-catalog
+type: Opaque
+stringData:
+  database-name: sampledb
+  database-username: userEVY
+  database-password: wwsPHR4gDorXgQ2a
+  database-admin-password: YiwThWIcUsaIwymi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongodb
+  labels:
+    app: fruits-catalog
+    container: mongodb
+spec:
+  ports:
+    - name: mongodb
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: fruits-catalog
+    container: mongodb
+  type: ClusterIP
+  sessionAffinity: None
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongodb
+  labels:
+    app: fruits-catalog
+    container: mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mongodb
+  labels:
+    app: fruits-catalog
+    container: mongodb
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector: 
+    matchLabels:  
+      app: fruits-catalog
+      deploymentconfig: mongodb
+      container: mongodb
+  template:
+    metadata:
+      labels:
+        app: fruits-catalog
+        deploymentconfig: mongodb
+        container: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: centos/mongodb-32-centos7:latest
+        ports:
+        - containerPort: 27017
+          protocol: TCP
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 3
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - mongo 127.0.0.1:27017/$MONGODB_DATABASE -u $MONGODB_USER -p $MONGODB_PASSWORD
+              --eval="quit()"
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 27017
+        env:
+        - name: MONGODB_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-username
+              name: mongodb
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: mongodb
+        - name: MONGODB_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-admin-password
+              name: mongodb
+        - name: MONGODB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: mongodb
+        resources:
+          limits:
+            memory: 512Mi
+        volumeMounts:
+        - name: "mongodb-data"
+          mountPath: "/var/lib/mongodb/data"
+        terminationMessagePath: "/dev/termination-log"
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          capabilities: {}
+          privileged: false
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      volumes:
+      - name: "mongodb-data"
+        persistentVolumeClaim:
+          claimName: "mongodb"
