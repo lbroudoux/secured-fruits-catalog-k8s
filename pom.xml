@@ -33,6 +33,7 @@
     <fabric8.generator.from>registry.redhat.io/redhat-openjdk18-openshift:${openjdk18-openshift.version}</fabric8.generator.from>
     <fabric8.generator.fromMode>docker</fabric8.generator.fromMode>
     -->
+    <fabric8.mode>openshift</fabric8.mode>
     <fabric8.generator.from>openshift/redhat-openjdk18-openshift:${openjdk18-openshift.version}</fabric8.generator.from>
     <fabric8.generator.fromMode>istag</fabric8.generator.fromMode>
     
