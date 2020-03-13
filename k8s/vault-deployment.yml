@@ -60,7 +60,8 @@ spec:
     spec:
       serviceAccountName: vault-sa
       containers:
-      - image: vault:1.0.2
+      - image: vault:1.3.3
+        #image: vault:1.0.2
         name: vault
         ports:
         - containerPort: 8200

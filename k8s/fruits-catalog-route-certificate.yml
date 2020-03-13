@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: fruits-catalog-route-certificate
+spec:
+  secretName: fruits-catalog-route-secret
+  commonName: FRUITS_CATALOG_ROUTE
+  dnsNames:
+  - FRUITS_CATALOG_ROUTE
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer

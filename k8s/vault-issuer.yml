@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: vault-issuer
+spec:
+  vault:
+    path: pki_int/sign/example-opentlc-com
+    server: https://vault.fruits-catalog.svc.cluster.local:8200
+    caBundle: VAULT_LISTENER_CERT
+    auth:
+      kubernetes:
+        role: cert-manager-vault-issuer
+        mountPath: /v1/auth/kubernetes
+        secretRef:
+          name: CERT_MANAGER_ISSUER_TOKEN
+          key: token
