@@ -39,3 +39,18 @@ $ oc new-app mongodb-persistent --name=mongodb -p DATABASE_SERVICE_NAME=mongodb 
 $ mvn fabric8:deploy -Popenshift
 [...]
 ```
+
+## Quick deployment on Kubernetes
+
+Example running on Minikube:
+
+```
+$ eval $(minikube docker-env)
+[...]
+$ kubectl create namespace fruits-catalog
+[...]
+$ kubectl create -f k8s/mongodb-deployment.yml -n fruits-catalog
+[...]
+$ mvn fabric8:deploy -Popenshift -Dfabric8.mode=kubernetes -Dfabric8.namespace=fruits-catalog
+[...]
+```
