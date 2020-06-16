@@ -1,7 +1,7 @@
 {
   "realm": "fruits-catalog",
   "resource": "fruits-catalog-app-js",
-  "auth-server-url": "https://keycloak-fruits-catalog.apps.144.76.24.92.nip.io/auth",
+  "auth-server-url": "https://keycloak-fruits-catalog-keycloak.apps.cluster-lemans-0b61.lemans-0b61.example.opentlc.com/auth",
   "ssl-required": "external",
   "public-client": true
 }
