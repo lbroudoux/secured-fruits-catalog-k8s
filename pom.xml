@@ -34,6 +34,7 @@
     <fabric8.generator.from>registry.redhat.io/redhat-openjdk18-openshift:${openjdk18-openshift.version}</fabric8.generator.from>
     <fabric8.generator.fromMode>docker</fabric8.generator.fromMode>
     -->
+    <fabric8.mode>openshift</fabric8.mode>
     <fabric8.generator.from>openshift/redhat-openjdk18-openshift:${openjdk18-openshift.version}</fabric8.generator.from>
     <fabric8.generator.fromMode>istag</fabric8.generator.fromMode>
     
@@ -43,7 +44,10 @@
     <arquillian-cube-openshift.version>1.15.3</arquillian-cube-openshift.version>
     <opentracing-spring-jaeger-cloud.version>1.0.1</opentracing-spring-jaeger-cloud.version>
     <opentracing-tracerresolver.version>0.1.5</opentracing-tracerresolver.version>
-    <fabric8-fmp.version>3.5.41</fabric8-fmp.version>
+    <!-- For OpenShift 3.11, stick with this older version of Fabric8 Maven Plugin -->
+    <!-- <fabric8-fmp.version>3.5.41</fabric8-fmp.version> -->
+    <!-- For OpenShift 4.x, change to this new version of Fabric8 Maven Plugin -->
+    <fabric8-fmp.version>4.3.1</fabric8-fmp.version>
   </properties>
   <dependencyManagement>
     <dependencies>
